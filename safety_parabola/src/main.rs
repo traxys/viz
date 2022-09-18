@@ -3,7 +3,7 @@ use iced::{
     widget::{canvas, canvas::Stroke, slider, Column, Row, Text},
     Application, Color, Command, Length, Theme,
 };
-use plotter::Plotter;
+use plotter::{linspace, Plotter};
 
 const RESOLUTION: usize = 100;
 const DEFAULT_SCALE: f64 = 75.;
@@ -129,23 +129,27 @@ impl<Message> canvas::Program<Message> for State {
             );
 
             let make_parabola = |th: f64| {
-                let v0x = th.sin() * v0;
-                let v0y = th.cos() * v0;
-
-                let a = -EARTH_G / (2. * v0x * v0x);
-                let b = v0y / v0x;
+                let a = -EARTH_G / (2. * v0 * v0 * th.cos() * th.cos());
+                let b = th.tan();
 
                 plotter.parabola(a, b, 0.)
             };
 
-            (1..=self.count)
-                .map(|x| make_parabola(x as f64 * (180. / self.count as f64)))
-                .for_each(|path| {
-                    frame.stroke(
-                        &path,
-                        Stroke::default().with_width(3.0).with_color(Color::BLACK),
-                    )
-                });
+            let x_max = v0 * v0 / EARTH_G;
+            let parabolas = linspace(-x_max * 0.95, x_max * 0.95, self.count / 2)
+                .filter(|&x| x != 0.)
+                .flat_map(|x| {
+                    let th = (EARTH_G * x / (v0 * v0)).asin() / 2.;
+                    [th, th + std::f64::consts::FRAC_PI_2]
+                })
+                .map(make_parabola);
+
+            for parabola in parabolas {
+                frame.stroke(
+                    &parabola,
+                    Stroke::default().with_width(3.0).with_color(Color::BLACK),
+                )
+            }
 
             let safety_parabola =
                 plotter.parabola(-EARTH_G / (2. * v0 * v0), 0., v0 * v0 / (2. * EARTH_G));

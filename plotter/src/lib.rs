@@ -40,7 +40,7 @@ impl From<Vector2D> for Point {
     }
 }
 
-fn linspace(p0: f64, p1: f64, count: usize) -> impl Iterator<Item = f64> {
+pub fn linspace(p0: f64, p1: f64, count: usize) -> impl Iterator<Item = f64> {
     (0..=count).map(move |x| p0 + x as f64 * (p1 - p0) / (count as f64))
 }
 
