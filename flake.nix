@@ -22,12 +22,7 @@
         cargo = rust;
         rustc = rust;
       };
-      /*
-         nativeBuildInputs = [
-        pkgs.autoPatchelfHook
-      ];
-      */
-      buildInputs = [
+      libs = [
         pkgs.xorg.libX11
         pkgs.xorg.libXcursor
         pkgs.xorg.libXrandr
@@ -41,13 +36,18 @@
           pkgs.gdb
           rust
         ];
-        LD_LIBRARY_PATH = "${pkgs.lib.strings.makeLibraryPath buildInputs}";
+        LD_LIBRARY_PATH = "${pkgs.lib.strings.makeLibraryPath libs}";
       };
 
-      defaultPackage = naersk'.buildPackage {
-        inherit buildInputs;
-        src = ./.;
-        #runtimeDependencies = [pkgs.libGL];
+      apps.safety_parabola = flake-utils.lib.mkApp rec {
+        drv = naersk'.buildPackage {
+          src = ./.;
+          targets = ["safety_parabola"];
+
+          nativeBuildInputs = [pkgs.autoPatchelfHook];
+          runtimeDependencies = libs;
+        };
+        exePath = "/bin/safety_parabola";
       };
     });
 }
