@@ -1,6 +1,7 @@
 use iced::{
-    canvas::{self, Canvas, Stroke},
-    executor, slider, Application, Color, Column, Command, Length, Row, Slider, Text,
+    executor,
+    widget::{canvas, canvas::Stroke, slider, Column, Row, Text},
+    Application, Color, Command, Length, Theme,
 };
 use plotter::Plotter;
 
@@ -10,9 +11,6 @@ const EARTH_G: f64 = 9.81;
 
 struct SafetyParabola {
     state: State,
-    v0: slider::State,
-    scale: slider::State,
-    count: slider::State,
 }
 
 struct State {
@@ -31,7 +29,7 @@ enum Message {
 
 pub fn main() -> iced::Result {
     SafetyParabola::run(iced::Settings {
-        antialiasing: false,
+        antialiasing: true,
         ..Default::default()
     })
 }
@@ -39,15 +37,13 @@ pub fn main() -> iced::Result {
 impl Application for SafetyParabola {
     type Executor = executor::Default;
     type Message = Message;
+    type Theme = Theme;
     type Flags = ();
 
     fn new(_: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         (
             Self {
                 state: State::new(),
-                v0: Default::default(),
-                scale: Default::default(),
-                count: Default::default(),
             },
             Command::none(),
         )
@@ -68,37 +64,29 @@ impl Application for SafetyParabola {
         Command::none()
     }
 
-    fn view(&mut self) -> iced::Element<'_, Self::Message> {
+    fn view(&self) -> iced::Element<'_, Self::Message> {
         Column::with_children(vec![
             Row::with_children(vec![
                 Text::new(format!("count ({:3})", self.state.count)).into(),
-                Slider::new(
-                    &mut self.count,
-                    1.0..=100.0,
-                    self.state.count as f64,
-                    |f: f64| Message::SetCount(f.ceil() as usize),
-                )
+                slider(1.0..=100.0, self.state.count as f64, |f: f64| {
+                    Message::SetCount(f.ceil() as usize)
+                })
                 .into(),
             ])
             .into(),
             Row::with_children(vec![
                 Text::new(format!("v0 ({:7.2})", self.state.v0)).into(),
-                Slider::new(&mut self.v0, 1.0..=1000., self.state.v0, Message::SetV0).into(),
+                slider(1.0..=1000., self.state.v0, Message::SetV0).into(),
             ])
             .into(),
             Row::with_children(vec![
                 Text::new(format!("scale ({:7.2})", self.state.scale)).into(),
-                Slider::new(
-                    &mut self.scale,
-                    0.1..=100.,
-                    self.state.scale,
-                    Message::SetScale,
-                )
-                .step(0.1)
-                .into(),
+                slider(0.1..=100., self.state.scale, Message::SetScale)
+                    .step(0.1)
+                    .into(),
             ])
             .into(),
-            Canvas::new(&mut self.state)
+            canvas(&self.state)
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .into(),
@@ -119,7 +107,15 @@ impl State {
 }
 
 impl<Message> canvas::Program<Message> for State {
-    fn draw(&self, bounds: iced::Rectangle, _cursor: canvas::Cursor) -> Vec<canvas::Geometry> {
+    type State = ();
+
+    fn draw(
+        &self,
+        _state: &Self::State,
+        _theme: &Theme,
+        bounds: iced::Rectangle,
+        _cursor: canvas::Cursor,
+    ) -> Vec<canvas::Geometry> {
         let v0 = self.v0;
 
         vec![self.plot_cache.draw(bounds.size(), |frame| {
