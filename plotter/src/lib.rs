@@ -56,7 +56,7 @@ impl Plotter {
 
     fn screen_coord(&self, mut v: Vector2D) -> Point {
         v.y *= -1.;
-        //v += vec2d(self.width / 2., self.height / 2.);
+        v += vec2d(self.width / 2., self.height / 2.);
         v *= self.scale;
         v.into()
     }

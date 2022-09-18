@@ -17,7 +17,9 @@
         inherit system;
         overlays = [(import rust-overlay)];
       };
-      rust = pkgs.rust-bin.stable.latest.default;
+      rust = pkgs.rust-bin.stable.latest.default.override {
+        targets = ["wasm32-unknown-unknown"];
+      };
       naersk' = pkgs.callPackage naersk {
         cargo = rust;
         rustc = rust;
@@ -29,13 +31,21 @@
         pkgs.xorg.libXi
         pkgs.vulkan-loader
       ];
+      nativeBuildInputs = [
+        pkgs.cmake
+        pkgs.pkg-config
+		pkgs.fontconfig
+      ];
     in {
       devShell = pkgs.mkShell {
-        nativeBuildInputs = [
-          pkgs.bashInteractive
-          pkgs.gdb
-          rust
-        ];
+        nativeBuildInputs =
+          [
+            pkgs.bashInteractive
+            pkgs.gdb
+            pkgs.trunk
+            rust
+          ]
+          ++ nativeBuildInputs;
         LD_LIBRARY_PATH = "${pkgs.lib.strings.makeLibraryPath libs}";
       };
 
@@ -44,7 +54,7 @@
           src = ./.;
           targets = ["safety_parabola"];
 
-          nativeBuildInputs = [pkgs.autoPatchelfHook];
+          nativeBuildInputs = [pkgs.autoPatchelfHook] ++ nativeBuildInputs;
           runtimeDependencies = libs;
         };
         exePath = "/bin/safety_parabola";
