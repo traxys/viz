@@ -1,6 +1,7 @@
+use either::Either;
 use iced::{
     executor,
-    widget::{canvas, canvas::Stroke, slider, Column, Row, Text},
+    widget::{canvas, canvas::Stroke, pick_list, slider, Column, Row, Text},
     Application, Color, Command, Length, Theme,
 };
 use plotter::{linspace, Plotter};
@@ -8,6 +9,23 @@ use plotter::{linspace, Plotter};
 const RESOLUTION: usize = 100;
 const DEFAULT_SCALE: f64 = 75.;
 const EARTH_G: f64 = 9.81;
+const DEFAULT_SPACING: ParabolaSpacing = ParabolaSpacing::EqualAngle;
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+enum ParabolaSpacing {
+    EqualXIntersect,
+    EqualAngle,
+}
+
+impl std::fmt::Display for ParabolaSpacing {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            ParabolaSpacing::EqualXIntersect => "equal x intersect",
+            ParabolaSpacing::EqualAngle => "equal angles",
+        };
+        write!(f, "{}", s)
+    }
+}
 
 struct SafetyParabola {
     state: State,
@@ -16,15 +34,15 @@ struct SafetyParabola {
 struct State {
     plot_cache: canvas::Cache,
     v0: f64,
-    scale: f64,
     count: usize,
+    spacing: ParabolaSpacing,
 }
 
 #[derive(Debug, Clone, Copy)]
 enum Message {
     SetV0(f64),
-    SetScale(f64),
     SetCount(usize),
+    SetSpacing(ParabolaSpacing),
 }
 
 pub fn main() -> iced::Result {
@@ -56,8 +74,8 @@ impl Application for SafetyParabola {
     fn update(&mut self, msg: Self::Message) -> iced::Command<Self::Message> {
         match msg {
             Message::SetV0(v0) => self.state.v0 = v0,
-            Message::SetScale(scale) => self.state.scale = scale,
             Message::SetCount(c) => self.state.count = c,
+            Message::SetSpacing(s) => self.state.spacing = s,
         }
         self.state.plot_cache.clear();
 
@@ -68,22 +86,31 @@ impl Application for SafetyParabola {
         Column::with_children(vec![
             Row::with_children(vec![
                 Text::new(format!("count ({:3})", self.state.count)).into(),
-                slider(1.0..=100.0, self.state.count as f64, |f: f64| {
+                slider(4.0..=100.0, self.state.count as f64, |f: f64| {
                     Message::SetCount(f.ceil() as usize)
                 })
+                .step(2.0)
                 .into(),
             ])
             .into(),
             Row::with_children(vec![
                 Text::new(format!("v0 ({:7.2})", self.state.v0)).into(),
-                slider(1.0..=1000., self.state.v0, Message::SetV0).into(),
+                slider(0.1..=20.0, self.state.v0, Message::SetV0)
+                    .step(0.1)
+                    .into(),
             ])
             .into(),
             Row::with_children(vec![
-                Text::new(format!("scale ({:7.2})", self.state.scale)).into(),
-                slider(0.1..=100., self.state.scale, Message::SetScale)
-                    .step(0.1)
-                    .into(),
+                Text::new("Spacing").into(),
+                pick_list(
+                    &[
+                        ParabolaSpacing::EqualXIntersect,
+                        ParabolaSpacing::EqualAngle,
+                    ][..],
+                    Some(self.state.spacing),
+                    Message::SetSpacing,
+                )
+                .into(),
             ])
             .into(),
             canvas(&self.state)
@@ -100,8 +127,8 @@ impl State {
         Self {
             plot_cache: canvas::Cache::new(),
             v0: 10.,
-            scale: DEFAULT_SCALE,
             count: 10,
+            spacing: DEFAULT_SPACING,
         }
     }
 }
@@ -120,7 +147,7 @@ impl<Message> canvas::Program<Message> for State {
 
         vec![self.plot_cache.draw(bounds.size(), |frame| {
             let iced::Size { width, height } = frame.size();
-            let plotter = Plotter::new(RESOLUTION, width as _, height as _, self.scale);
+            let plotter = Plotter::new(RESOLUTION, width as _, height as _, DEFAULT_SCALE);
 
             let axis = plotter.axis();
             frame.stroke(
@@ -136,15 +163,22 @@ impl<Message> canvas::Program<Message> for State {
             };
 
             let x_max = v0 * v0 / EARTH_G;
-            let parabolas = linspace(-x_max * 0.95, x_max * 0.95, self.count / 2)
-                .filter(|&x| x != 0.)
-                .flat_map(|x| {
-                    let th = (EARTH_G * x / (v0 * v0)).asin() / 2.;
-                    [th, th + std::f64::consts::FRAC_PI_2]
-                })
-                .map(make_parabola);
+            let thetas = match self.spacing {
+                ParabolaSpacing::EqualXIntersect => Either::Left(
+                    linspace(-x_max * 0.95, x_max * 0.95, self.count / 2)
+                        .filter(|&x| x != 0.)
+                        .flat_map(|x| {
+                            let th = (EARTH_G * x / (v0 * v0)).asin() / 2.;
+                            [th, th + std::f64::consts::FRAC_PI_2]
+                        }),
+                ),
+                ParabolaSpacing::EqualAngle => Either::Right(
+                    linspace(0.001, std::f64::consts::PI, self.count)
+                        .filter(|&x| x != std::f64::consts::FRAC_PI_2),
+                ),
+            };
 
-            for parabola in parabolas {
+            for parabola in thetas.map(make_parabola) {
                 frame.stroke(
                     &parabola,
                     Stroke::default().with_width(3.0).with_color(Color::BLACK),

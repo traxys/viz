@@ -43,6 +43,7 @@
             pkgs.bashInteractive
             pkgs.gdb
             pkgs.trunk
+			pkgs.pandoc
             rust
           ]
           ++ nativeBuildInputs;
