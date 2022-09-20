@@ -1,0 +1,9 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: generating website
+    image: rust:1.63
+    commands:
+      - cargo xtask build --release
