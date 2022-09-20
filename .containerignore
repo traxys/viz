@@ -1,0 +1,5 @@
+/target
+**/*.html
+!template.html
+build
+Dockerfile

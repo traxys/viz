@@ -3,9 +3,17 @@ type: docker
 name: default
 
 steps:
-  - name: generating website
-    image: gitea.familleboyer.net/traxys/viz-build:1.63
+  - name: Check the code
+    image: rust:1.63
     commands:
-      - apt-get update -y && apt-get install -y pandoc
-      - cargo install trunk
-      - cargo xtask build --release
+      - cargo check
+
+  - name: publish website
+    image: plugins/docker
+    settings:
+      registry: gitea.familleboyer.net
+      username: traxys
+      password:
+        from_secret: docker_password
+      repo: gitea.familleboyer.net/traxys/viz
+      tags: latest
