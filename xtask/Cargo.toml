@@ -1,0 +1,19 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.2.22", features = ["derive"] }
+color-eyre = "0.6.2"
+hyper = { version = "0.14.20", features = ["server", "http1", "tcp"] }
+liquid = "0.26.0"
+pandoc = "0.8.10"
+serde = { version = "1.0.144", features = ["derive"] }
+serde_yaml = "0.9.13"
+tokio = { version = "1.21.1", features = ["macros", "rt"] }
+toml = "0.5.9"
+tower = { version = "0.4.13", features = ["make"] }
+tower-http = { version = "0.3.4", features = ["fs"] }

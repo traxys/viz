@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+	<head>
+		<title>{{ blog_name }}</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style>
+			pre {border-radius: 5px;}
+		</style>
+	</head>
+	<body>
+		<div class="container has-text-centered p-2">
+			<h1 class="title is-1">{{ blog_name }}</h1>
+			{% for article in articles %}
+				<div class="container is-max-desktop has-text-centered">
+					<div>
+						<span class="title is-4"><a href="{{ article.path }}/index.html">{{ article.title }}</a></span>
+					</div>
+					<div class="content has-text-left">
+						{{ article.summary }}
+						<br/>
+						<a href="{{ article.path }}/index.html">Read Post</a>
+					</div>
+					<hr/>
+				</div>
+			{% endfor %}
+		</div>
+		<footer class="footer">
+            <div class="content has-text-centered">
+                <p>
+                The source code is licensed
+                <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+                The website content is licensed
+                <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY NC SA 4.0</a>.
+                </p>
+            </div>
+        </footer>
+	</body>
+</html>

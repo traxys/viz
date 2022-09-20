@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 #iced_graphics = { version = "0.3.1", features = ["canvas"] }
-iced_graphics = { git = "https://github.com/iced-rs/iced", features = ["canvas"] }
+iced_graphics = { git = "https://github.com/traxys/iced", features = ["canvas"], branch = "div_canvas" }
