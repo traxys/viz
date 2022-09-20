@@ -112,7 +112,7 @@ fn build(
     index_template.render_to(
         &mut index,
         &liquid::object!({
-            "blog_name": "Traxy's Math Board",
+            "blog_name": "vᵢ(𝒛): Math Visualizations",
             "articles": articles,
         }),
     )?;
