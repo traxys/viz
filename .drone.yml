@@ -4,7 +4,7 @@ name: default
 
 steps:
   - name: generating website
-    image: rust:1.63
+    image: gitea.familleboyer.net/traxys/viz-build:1.63
     commands:
       - apt-get update -y && apt-get install -y pandoc
       - cargo install trunk
