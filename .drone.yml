@@ -6,4 +6,5 @@ steps:
   - name: generating website
     image: rust:1.63
     commands:
+      - apt-get update -y && apt-get install -y pandoc
       - cargo xtask build --release
