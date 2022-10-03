@@ -48,6 +48,7 @@
           ]
           ++ nativeBuildInputs;
         LD_LIBRARY_PATH = "${pkgs.lib.strings.makeLibraryPath libs}";
+		RUST_PATH = "${rust}";
       };
 
       apps.safety_parabola = flake-utils.lib.mkApp rec {

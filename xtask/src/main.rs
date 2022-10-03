@@ -51,6 +51,8 @@ fn build(
         let path = workspace.join(post);
         let desc = path.join("desc.md");
 
+        println!("Building {post}");
+
         let desc_file = BufReader::new(File::open(&desc)?);
         let desc_metadata: String = desc_file
             .lines()
