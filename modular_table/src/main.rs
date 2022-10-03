@@ -20,6 +20,7 @@ struct State {
     multiplier: u64,
     colored: bool,
     label: bool,
+    arrow: bool,
 }
 
 const RESOLUTION: usize = 100;
@@ -32,6 +33,7 @@ enum Message {
     Multiplier(u64),
     Colored(bool),
     Labeled(bool),
+    Arrow(bool),
 }
 
 pub fn main() -> iced::Result {
@@ -72,6 +74,7 @@ impl Application for ModularTable {
             Message::Multiplier(m) => self.state.multiplier = m,
             Message::Colored(b) => self.state.colored = b,
             Message::Labeled(l) => self.state.label = l,
+            Message::Arrow(a) => self.state.arrow = a,
         }
         self.state.cache.clear();
 
@@ -113,6 +116,7 @@ impl Application for ModularTable {
                 )
                 .into(),
                 checkbox("Labels on the nodes", self.state.label, Message::Labeled).into(),
+                checkbox("Arrows", self.state.arrow, Message::Arrow).into(),
             ])
             .into(),
             canvas(&self.state)
@@ -134,6 +138,7 @@ impl State {
             scale: 1.,
             colored: false,
             label: true,
+            arrow: false,
         }
     }
 }
@@ -173,6 +178,8 @@ impl<Message> canvas::Program<Message> for State {
 
             let mut graph = Graph::<u64, (), _>::new_undirected();
             let mut nodes = HashMap::new();
+            let mut graph_directed = Graph::<u64, (), _>::new();
+            let mut nodes_directed = HashMap::new();
 
             for i in 1..=self.modulo {
                 let (x, y) = coord(i);
@@ -183,6 +190,14 @@ impl<Message> canvas::Program<Message> for State {
                 let &mut i_idx = nodes.entry(i).or_insert_with(|| graph.add_node(i));
                 let &mut r_idx = nodes.entry(r).or_insert_with(|| graph.add_node(r));
                 graph.add_edge(i_idx, r_idx, ());
+
+                let &mut i_idx = nodes_directed
+                    .entry(i)
+                    .or_insert_with(|| graph_directed.add_node(i));
+                let &mut r_idx = nodes_directed
+                    .entry(r)
+                    .or_insert_with(|| graph_directed.add_node(r));
+                graph_directed.add_edge(i_idx, r_idx, ());
 
                 frame.fill(
                     &plotter.circle(x, y, 0.03),
@@ -219,13 +234,23 @@ impl<Message> canvas::Program<Message> for State {
                 for (i, &a) in component.iter().take(component.len() - 1).enumerate() {
                     for &b in &component[i + 1..] {
                         if graph.contains_edge(a, b) {
-                            frame.stroke(
-                                &plotter.path([
-                                    coord(*graph.node_weight(a).unwrap()),
-                                    coord(*graph.node_weight(b).unwrap()),
-                                ]),
-                                stroke,
-                            );
+                            let &a = graph.node_weight(a).unwrap();
+                            let &b = graph.node_weight(b).unwrap();
+                            if self.arrow {
+                                let ia = nodes_directed[&a];
+                                let ib = nodes_directed[&b];
+                                let (start, end) = if graph_directed.contains_edge(ia, ib) {
+                                    (a, b)
+                                } else {
+                                    (b, a)
+                                };
+                                frame.stroke(
+                                    &plotter.arrow_absolute_size(coord(start), coord(end), 0.05),
+                                    stroke,
+                                );
+                            } else {
+                                frame.stroke(&plotter.path([coord(a), coord(b)]), stroke);
+                            }
                         }
                     }
                 }

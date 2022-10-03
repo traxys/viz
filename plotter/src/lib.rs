@@ -3,7 +3,10 @@ use iced_graphics::{
     widget::canvas::{path::Path as Path2D, Text},
     Point,
 };
-use std::ops::{AddAssign, MulAssign};
+use std::{
+    f64::consts::FRAC_PI_6,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+};
 
 pub struct Plotter {
     resolution: usize,
@@ -12,9 +15,23 @@ pub struct Plotter {
     scale: f64,
 }
 
+#[derive(Clone, Copy)]
 pub struct Vector2D {
     x: f64,
     y: f64,
+}
+
+impl Vector2D {
+    fn norm(&self) -> f64 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    fn rot(&self, angle: f64) -> Vector2D {
+        Vector2D {
+            x: self.x * angle.cos() - self.y * angle.sin(),
+            y: self.x * angle.sin() + self.y * angle.cos(),
+        }
+    }
 }
 
 impl From<(f64, f64)> for Vector2D {
@@ -27,18 +44,90 @@ pub fn vec2d(x: f64, y: f64) -> Vector2D {
     Vector2D { x, y }
 }
 
-impl MulAssign<f64> for Vector2D {
-    fn mul_assign(&mut self, rhs: f64) {
-        self.x *= rhs;
-        self.y *= rhs;
-    }
+macro_rules! assign_impl {
+    ($($op_name:ident=$op:tt);*;) => {
+        $(
+        paste::paste!{
+            impl [< $op_name:camel Assign>]<Vector2D> for Vector2D {
+                fn [< $op_name _assign >](&mut self, rhs: Vector2D) {
+                    self.x $op rhs.x;
+                    self.y $op rhs.y;
+                }
+            }
+        }
+        )*
+    };
 }
 
-impl AddAssign<Vector2D> for Vector2D {
-    fn add_assign(&mut self, rhs: Vector2D) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-    }
+macro_rules! op_impl {
+    ($($op_name:ident=$op:tt);*;) => {
+        $(
+        paste::paste!{
+            impl [< $op_name:camel >]<Vector2D> for Vector2D {
+                type Output = Vector2D;
+                fn $op_name(self, rhs: Vector2D) -> Vector2D {
+                    Vector2D {
+                        x: self.x $op rhs.x,
+                        y: self.y $op rhs.y,
+                    }
+                }
+            }
+        }
+        )*
+    };
+}
+
+macro_rules! scalar_op_assign {
+    ($($op_name:ident=$op:tt);* ;) => {
+        $(
+        paste::paste! {
+            impl [< $op_name:camel Assign>]<f64> for Vector2D {
+                fn [< $op_name _assign >](&mut self, rhs: f64) {
+                    self.x $op rhs;
+                    self.y $op rhs;
+                }
+            }
+        }
+        )*
+    };
+}
+
+macro_rules! scalar_op {
+    ($($op_name:ident=$op:tt);* ;) => {
+        $(
+        paste::paste! {
+            impl [< $op_name:camel >]<f64> for Vector2D {
+                type Output = Vector2D;
+                fn $op_name(self, rhs: f64) -> Vector2D {
+                    Vector2D {
+                        x: self.x $op rhs,
+                        y: self.y $op rhs,
+                    }
+                }
+            }
+        }
+        )*
+    };
+}
+
+assign_impl! {
+    sub = -=;
+    add = +=;
+}
+
+op_impl! {
+    add = +;
+    sub = -;
+}
+
+scalar_op_assign! {
+    mul = *=;
+    div = /=;
+}
+
+scalar_op! {
+    mul = *;
+    div = /;
 }
 
 impl From<Vector2D> for Point {
@@ -99,13 +188,57 @@ impl Plotter {
         }
     }
 
+    ///
+    /// The head_size is from 0 to 1. 1 means that the head is the same length as the arrow body,
+    /// and 0 means the mead is of size 0. It is a linear interpolation between the two.
+    ///
+    pub fn arrow<C>(&self, start: C, end: C, head_size: f64) -> Path2D
+    where
+        C: Into<Vector2D>,
+    {
+        let start = start.into();
+        let end = end.into();
+
+        let mut vec = end - start;
+
+        vec *= head_size * 2. / 3f64.sqrt();
+
+        let arrow = vec.rot(FRAC_PI_6);
+        let base = arrow.rot(FRAC_PI_6 * 2.);
+
+        Path2D::new(|builder| {
+            builder.move_to(self.screen_coord(start));
+            builder.line_to(self.screen_coord(start + (end - start) * (1. - head_size)));
+            builder.move_to(self.screen_coord(end));
+            builder.line_to(self.screen_coord(end - arrow));
+            builder.line_to(self.screen_coord(end - arrow + base));
+            builder.line_to(self.screen_coord(end));
+        })
+    }
+
+    ///
+    /// This is the same as Plotter::arrow, but the head_size is in absolute pixels
+    ///
+    pub fn arrow_absolute_size<C>(&self, start: C, end: C, head_size: f64) -> Path2D
+    where
+        C: Into<Vector2D>,
+    {
+        let start = start.into();
+        let end = end.into();
+
+        self.arrow(start, end, head_size / (end - start).norm())
+    }
+
     pub fn path<I, C>(&self, parts: I) -> Path2D
     where
         C: Into<Vector2D>,
         I: IntoIterator<Item = C>,
     {
         Path2D::new(|builder| {
-            let mut coords = parts.into_iter().map(Into::into).map(|c| self.screen_coord(c));
+            let mut coords = parts
+                .into_iter()
+                .map(Into::into)
+                .map(|c| self.screen_coord(c));
 
             let first = match coords.next() {
                 None => return,
