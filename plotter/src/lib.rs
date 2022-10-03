@@ -1,4 +1,8 @@
-use iced_graphics::{widget::canvas::path::Path as Path2D, Point};
+use iced_graphics::{
+    alignment::{Horizontal, Vertical},
+    widget::canvas::{path::Path as Path2D, Text},
+    Point,
+};
 use std::ops::{AddAssign, MulAssign};
 
 pub struct Plotter {
@@ -8,12 +12,18 @@ pub struct Plotter {
     scale: f64,
 }
 
-struct Vector2D {
+pub struct Vector2D {
     x: f64,
     y: f64,
 }
 
-fn vec2d(x: f64, y: f64) -> Vector2D {
+impl From<(f64, f64)> for Vector2D {
+    fn from((x, y): (f64, f64)) -> Self {
+        vec2d(x, y)
+    }
+}
+
+pub fn vec2d(x: f64, y: f64) -> Vector2D {
     Vector2D { x, y }
 }
 
@@ -86,6 +96,51 @@ impl Plotter {
             x_max
         } else {
             x
+        }
+    }
+
+    pub fn path<I, C>(&self, parts: I) -> Path2D
+    where
+        C: Into<Vector2D>,
+        I: IntoIterator<Item = C>,
+    {
+        Path2D::new(|builder| {
+            let mut coords = parts.into_iter().map(Into::into).map(|c| self.screen_coord(c));
+
+            let first = match coords.next() {
+                None => return,
+                Some(f) => f,
+            };
+
+            builder.move_to(first);
+            for point in coords {
+                builder.line_to(point);
+            }
+        })
+    }
+
+    pub fn circle(&self, x: f64, y: f64, radius: f64) -> Path2D {
+        Path2D::new(|builder| {
+            builder.circle(
+                self.screen_coord(vec2d(x, y)),
+                radius as f32 * self.scale as f32,
+            );
+        })
+    }
+
+    pub fn centered_circle(&self, radius: f64) -> Path2D {
+        self.circle(0., 0., radius)
+    }
+
+    pub fn text(&self, x: f64, y: f64, content: String) -> Text {
+        let position = self.screen_coord(vec2d(x, y));
+
+        Text {
+            content,
+            position,
+            horizontal_alignment: Horizontal::Center,
+            vertical_alignment: Vertical::Center,
+            ..Default::default()
         }
     }
 
