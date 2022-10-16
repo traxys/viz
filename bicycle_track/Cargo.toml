@@ -1,0 +1,12 @@
+[package]
+name = "bicycle_track"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+iced = { git = "https://github.com/traxys/iced", features = [
+  "canvas",
+], branch = "div_canvas" }
+plotter = { version = "0.1.0", path = "../plotter" }

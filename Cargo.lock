@@ -137,6 +137,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bicycle_track"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "plotter",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

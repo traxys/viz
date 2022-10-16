@@ -291,20 +291,29 @@ impl Plotter {
         let x2 = (-b - delta.sqrt()) / (2. * a);
         let (x1, x2) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
 
-        let x1 = self.clamp_min(x1);
-        let x2 = self.clamp_max(x2);
+        self.function(x1, x2, |x| a * x * x + b * x + c)
+    }
 
-        let width = x2 - x1;
+    pub fn function<F>(&self, start: f64, end: f64, f: F) -> Path2D
+    where
+        F: Fn(f64) -> f64,
+    {
+        let start = self.clamp_min(start);
+        let end = self.clamp_max(end);
+
+        let width = end - start;
         let total_points = (width * self.resolution as f64).ceil() as usize;
 
+        let point = |x| self.screen_coord(vec2d(x, f(x)));
+
         Path2D::new(|path| {
-            let mut space = linspace(x1, x2, total_points);
+            let mut space = linspace(start, end, total_points);
             let first = space.next().unwrap();
 
-            path.move_to(self.screen_coord(vec2d(first, a * first * first + b * first + c)));
+            path.move_to(point(first));
 
             for x in space {
-                path.line_to(self.screen_coord(vec2d(x, a * x * x + b * x + c)))
+                path.line_to(point(x))
             }
         })
     }

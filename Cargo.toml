@@ -1,3 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["plotter", "safety_parabola", "modular_table", "xtask"]
+members = [
+  "plotter",
+  "safety_parabola",
+  "modular_table",
+  "bicycle_track",
+  "xtask",
+]
+
+[profile.release]
+lto = true
