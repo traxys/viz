@@ -4,7 +4,7 @@ name: default
 
 steps:
   - name: Check the code
-    image: rust:1.63
+    image: rust:1.68
     commands:
       - cargo check
 
