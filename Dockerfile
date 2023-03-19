@@ -1,4 +1,4 @@
-FROM gitea.familleboyer.net/traxys/viz-build:1.63 as builder
+FROM gitea.familleboyer.net/traxys/viz-build:1.68 as builder
 
 COPY . .
 RUN cargo xtask build --release
