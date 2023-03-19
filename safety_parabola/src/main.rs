@@ -46,8 +46,24 @@ enum Message {
 }
 
 pub fn main() -> iced::Result {
+    #[cfg(target_arch = "wasm32")]
+    let platform_specific = {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+
+        iced::window::PlatformSpecific {
+            target: Some("iced_root".into()),
+        }
+    };
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let platform_specific = iced::window::PlatformSpecific {};
+
     SafetyParabola::run(iced::Settings {
         antialiasing: true,
+        window: iced::window::Settings {
+            platform_specific,
+            ..Default::default()
+        },
         ..Default::default()
     })
 }

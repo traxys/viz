@@ -6,7 +6,7 @@ use iced::{
 };
 use plotter::Plotter;
 
-struct ModularTable {
+struct BicycleMonoTrack {
     state: State,
 }
 
@@ -32,13 +32,29 @@ enum Message {
 }
 
 pub fn main() -> iced::Result {
-    ModularTable::run(iced::Settings {
+    #[cfg(target_arch = "wasm32")]
+    let platform_specific = {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+
+        iced::window::PlatformSpecific {
+            target: Some("iced_root".into()),
+        }
+    };
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let platform_specific = iced::window::PlatformSpecific {};
+
+    BicycleMonoTrack::run(iced::Settings {
         antialiasing: true,
+        window: iced::window::Settings {
+            platform_specific,
+            ..Default::default()
+        },
         ..Default::default()
     })
 }
 
-impl Application for ModularTable {
+impl Application for BicycleMonoTrack {
     type Executor = executor::Default;
     type Message = Message;
     type Theme = Theme;

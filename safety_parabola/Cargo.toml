@@ -7,5 +7,11 @@ edition = "2021"
 
 [dependencies]
 either = "1.8.0"
-iced = { version = "0.8", features = ["canvas"] }
+# iced = { version = "0.8", features = ["canvas"] }
+iced = { git = "https://github.com/traxys/iced", branch = "fixup_wasm_replace", features = [
+  "canvas",
+] }
 plotter = { version = "0.1.0", path = "../plotter" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1"
