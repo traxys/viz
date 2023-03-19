@@ -1,12 +1,20 @@
 use iced_graphics::{
     alignment::{Horizontal, Vertical},
-    widget::canvas::{path::Path as Path2D, Text},
-    Point,
+    widget::canvas::{
+        path::{arc::Elliptical, Path as Path2D},
+        Text,
+    },
+    Point, Vector,
 };
 use std::{
     f64::consts::FRAC_PI_6,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
+
+pub fn eccentricity_to_radius(e: f64) -> (f64, f64) {
+    let a = 1. / (1. - e * e).sqrt();
+    (a, 1.)
+}
 
 pub struct Plotter {
     resolution: usize,
@@ -22,11 +30,15 @@ pub struct Vector2D {
 }
 
 impl Vector2D {
-    fn norm(&self) -> f64 {
+    pub fn norm(&self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    fn rot(&self, angle: f64) -> Vector2D {
+    pub fn normalize(&self) -> Self {
+        *self / self.norm()
+    }
+
+    pub fn rot(&self, angle: f64) -> Vector2D {
         Vector2D {
             x: self.x * angle.cos() - self.y * angle.sin(),
             y: self.x * angle.sin() + self.y * angle.cos(),
@@ -261,6 +273,21 @@ impl Plotter {
         })
     }
 
+    pub fn ellipse(&self, x: f64, y: f64, a: f64, b: f64) -> Path2D {
+        Path2D::new(|builder| {
+            builder.ellipse(Elliptical {
+                center: self.screen_coord(vec2d(x, y)),
+                radii: Vector::new((a * self.scale) as _, (b * self.scale) as _),
+                rotation: 0.,
+                start_angle: 0.,
+                end_angle: std::f32::consts::TAU,
+            })
+        })
+    }
+
+    pub fn centered_ellipse(&self, a: f64, b: f64) -> Path2D {
+        self.ellipse(0., 0., a, b)
+    }
     pub fn centered_circle(&self, radius: f64) -> Path2D {
         self.circle(0., 0., radius)
     }
