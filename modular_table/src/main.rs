@@ -2,7 +2,11 @@ use std::collections::HashMap;
 
 use iced::{
     executor,
-    widget::{canvas, canvas::Stroke, checkbox, slider, Column, Row, Text},
+    widget::canvas,
+    widget::{
+        canvas::{Stroke, Style},
+        checkbox, slider, Column, Row, Text,
+    },
     Application, Color, Command, Length, Theme,
 };
 use palette::{rgb::Rgb, FromColor, Lch, Srgb};
@@ -202,7 +206,7 @@ impl<Message> canvas::Program<Message> for State {
                 frame.fill(
                     &plotter.circle(x, y, 0.03),
                     canvas::Fill {
-                        color: Color::BLACK,
+                        style: Style::Solid(Color::BLACK),
                         ..Default::default()
                     },
                 );
@@ -246,10 +250,10 @@ impl<Message> canvas::Program<Message> for State {
                                 };
                                 frame.stroke(
                                     &plotter.arrow_absolute_size(coord(start), coord(end), 0.05),
-                                    stroke,
+                                    stroke.clone(),
                                 );
                             } else {
-                                frame.stroke(&plotter.path([coord(a), coord(b)]), stroke);
+                                frame.stroke(&plotter.path([coord(a), coord(b)]), stroke.clone());
                             }
                         }
                     }

@@ -2,7 +2,7 @@ use iced::{
     executor,
     widget::canvas,
     widget::{
-        canvas::{Fill, Stroke},
+        canvas::{Fill, Stroke, Style},
         slider, Column, Row, Text,
     },
     Application, Color, Command, Length, Theme,
@@ -309,14 +309,14 @@ impl<Message> canvas::Program<Message> for State {
             frame.fill(
                 &plotter.circle(-a * self.eccentricity, 0., 0.05),
                 Fill {
-                    color: Color::new(0.3, 0.21, 0.82, 1.),
+                    style: Style::Solid(Color::new(0.3, 0.21, 0.82, 1.)),
                     ..Default::default()
                 },
             );
             frame.fill(
                 &plotter.circle(a * self.eccentricity, 0., 0.05),
                 Fill {
-                    color: Color::new(0.3, 0.21, 0.82, 1.),
+                    style: Style::Solid(Color::new(0.3, 0.21, 0.82, 1.)),
                     ..Default::default()
                 },
             );

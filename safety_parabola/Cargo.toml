@@ -7,8 +7,5 @@ edition = "2021"
 
 [dependencies]
 either = "1.8.0"
-#iced = { version = "0.4", features = ["canvas"] }
-iced = { git = "https://github.com/traxys/iced", features = [
-  "canvas",
-], branch = "div_canvas" }
+iced = { version = "0.8", features = ["canvas"] }
 plotter = { version = "0.1.0", path = "../plotter" }
