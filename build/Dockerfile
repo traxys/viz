@@ -1,4 +1,4 @@
-FROM rust:1.63
+FROM rust:1.68
 
 RUN cargo install sccache
 
