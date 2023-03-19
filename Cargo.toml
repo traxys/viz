@@ -5,6 +5,7 @@ members = [
   "safety_parabola",
   "modular_table",
   "bicycle_track",
+  "ellipse_billard",
   "xtask",
 ]
 
