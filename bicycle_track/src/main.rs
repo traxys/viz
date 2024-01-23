@@ -2,7 +2,7 @@ use iced::{
     executor,
     widget::{canvas, slider, Column, Text},
     widget::{canvas::Stroke, Row},
-    Application, Color, Command, Length, Theme,
+    Application, Color, Command, Length, Renderer, Theme,
 };
 use plotter::Plotter;
 
@@ -42,7 +42,7 @@ pub fn main() -> iced::Result {
     };
 
     #[cfg(not(target_arch = "wasm32"))]
-    let platform_specific = iced::window::PlatformSpecific {};
+    let platform_specific = iced::window::PlatformSpecific::default();
 
     BicycleMonoTrack::run(iced::Settings {
         antialiasing: true,
@@ -166,11 +166,12 @@ impl<Message> canvas::Program<Message> for State {
     fn draw(
         &self,
         _state: &Self::State,
+        renderer: &Renderer,
         _theme: &Theme,
         bounds: iced::Rectangle,
-        _cursor: canvas::Cursor,
+        _cursor: iced::mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
-        vec![self.cache.draw(bounds.size(), |frame| {
+        vec![self.cache.draw(renderer, bounds.size(), |frame| {
             let iced::Size { width, height } = frame.size();
             let width = width as _;
             let height = height as _;

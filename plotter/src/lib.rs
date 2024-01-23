@@ -1,10 +1,12 @@
 use iced_graphics::{
-    alignment::{Horizontal, Vertical},
-    widget::canvas::{
+    core::{
+        alignment::{Horizontal, Vertical},
+        Point, Vector,
+    },
+    geometry::{
         path::{arc::Elliptical, Path as Path2D},
         Text,
     },
-    Point, Vector,
 };
 use std::{
     f64::consts::FRAC_PI_6,

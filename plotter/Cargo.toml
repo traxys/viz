@@ -6,8 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#iced_graphics = { git = "https://github.com/iced-rs/iced", features = ["canvas"] }
-iced_graphics = { git = "https://github.com/traxys/iced", branch = "fixup_wasm_replace", features = [
-  "canvas",
-] }
+iced_graphics = { version = "0.9", features = ["geometry"] }
 paste = "1.0.9"
