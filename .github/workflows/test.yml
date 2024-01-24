@@ -12,7 +12,7 @@ jobs:
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - run: nix build .#web
-    - run: tar -C result -cvaf viz.tar.gz
+    - run: tar -C result -cvaf viz.tar.gz .
     - run: curl --user traxys:${{ secrets.VIZ_PKGS }}
             --upload-file ./viz.tar.gz
             https://gitea.familleboyer.net/api/packages/traxys/generic/viz/$(git rev-parse --short HEAD)/viz.tar.gz
