@@ -7,7 +7,7 @@ use iced::{
         canvas::{Stroke, Style},
         checkbox, slider, Column, Row, Text,
     },
-    Application, Color, Command, Length, Theme, Renderer,
+    Application, Color, Command, Length, Theme,
 };
 use palette::{rgb::Rgb, FromColor, Lch, Srgb};
 use petgraph::graph::Graph;
@@ -169,12 +169,11 @@ impl<Message> canvas::Program<Message> for State {
     fn draw(
         &self,
         _state: &Self::State,
-        renderer: &Renderer,
         _theme: &Theme,
         bounds: iced::Rectangle,
-        _cursor: iced::mouse::Cursor,
+        _cursor: canvas::Cursor,
     ) -> Vec<canvas::Geometry> {
-        vec![self.cache.draw(renderer, bounds.size(), |frame| {
+        vec![self.cache.draw(bounds.size(), |frame| {
             let iced::Size { width, height } = frame.size();
             let plotter = Plotter::new(
                 RESOLUTION,

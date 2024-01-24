@@ -5,7 +5,7 @@ use iced::{
         canvas::{Fill, Stroke, Style},
         slider, Column, Row, Text,
     },
-    Application, Color, Command, Length, Theme, Renderer,
+    Application, Color, Command, Length, Theme,
 };
 use plotter::Plotter;
 
@@ -136,12 +136,11 @@ impl<Message> canvas::Program<Message> for State {
     fn draw(
         &self,
         _state: &Self::State,
-        renderer: &Renderer,
         _theme: &Theme,
         bounds: iced::Rectangle,
-        _cursor: iced::mouse::Cursor,
+        _cursor: canvas::Cursor,
     ) -> Vec<canvas::Geometry> {
-        vec![self.cache.draw(renderer, bounds.size(), |frame| {
+        vec![self.cache.draw(bounds.size(), |frame| {
             let iced::Size { width, height } = frame.size();
             let width = width as _;
             let height = height as _;
@@ -329,7 +328,7 @@ pub fn main() -> iced::Result {
     #[cfg(target_arch = "wasm32")]
     let platform_specific = {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    
+
         iced::window::PlatformSpecific {
             target: Some("iced_root".into()),
         }
