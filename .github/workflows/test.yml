@@ -12,7 +12,6 @@ jobs:
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - run: nix build .#web
-    - run: tar -C result -cvaf viz.tar.gz .
-    - run: curl --user traxys:${{ secrets.VIZ_PKGS }}
-            --upload-file ./viz.tar.gz
-            https://gitea.familleboyer.net/api/packages/traxys/generic/viz/$(git rev-parse --short HEAD)/viz.tar.gz
+    - run: nix profile install nixpkgs#minio-client
+    - run: mc alias set loserver https://s3.familleboyer.net/ ${{ secrets.S3_ACCESS_KEY }} ${{ secrets.S3_SECRET_KEY }}
+    - run: mc cp -r result/ loserver/viz-site
