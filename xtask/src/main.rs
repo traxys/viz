@@ -101,6 +101,8 @@ fn build(
         }
     }
 
+    let blog_name = "vᵢ(𝒛): Math Visualizations";
+
     let mut index = OpenOptions::new()
         .truncate(true)
         .write(true)
@@ -114,8 +116,23 @@ fn build(
     index_template.render_to(
         &mut index,
         &liquid::object!({
-            "blog_name": "vᵢ(𝒛): Math Visualizations",
+            "blog_name": blog_name,
             "articles": articles,
+        }),
+    )?;
+
+    let mut not_found = OpenOptions::new()
+        .truncate(true)
+        .write(true)
+        .create(true)
+        .open(target.join("404.html"))?;
+    let not_found_template = liquid::ParserBuilder::with_stdlib()
+        .build()?
+        .parse_file(workspace.join("not_found.liquid"))?;
+    not_found_template.render_to(
+        &mut not_found,
+        &liquid::object!({
+            "blog_name": blog_name,
         }),
     )?;
 
